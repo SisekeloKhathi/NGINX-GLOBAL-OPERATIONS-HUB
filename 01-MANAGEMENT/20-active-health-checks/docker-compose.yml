@@ -1,0 +1,24 @@
+services:
+
+  nginx:
+    image: nginx-lab-nginx:alpine
+    container_name: nginx-active-health
+    depends_on:
+      - backend1
+      - backend2
+    ports:
+      - "8101:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  backend1:
+    build:
+      context: ./backend1
+    image: nginx-lab-health-active-backend1
+    container_name: active-health-backend1
+
+  backend2:
+    build:
+      context: ./backend2
+    image: nginx-lab-health-active-backend2
+    container_name: active-health-backend2

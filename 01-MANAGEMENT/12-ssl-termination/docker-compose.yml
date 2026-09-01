@@ -1,0 +1,25 @@
+services:
+  nginx:
+    image: nginx-lab-nginx:alpine
+    container_name: nginx-ssl
+    ports:
+      - "8443:443"
+      - "8081:80"  # Changed from 8080 to 8081
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend
+    networks:
+      - ssl-network
+
+  backend:
+    build: ./backend
+    image: nginx-lab-ssl-backend
+    container_name: nginx-ssl-backend
+    networks:
+      - ssl-network
+
+networks:
+  ssl-network:
+    driver: bridge

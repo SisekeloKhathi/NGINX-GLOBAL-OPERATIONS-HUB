@@ -1,0 +1,23 @@
+services:
+  nginx:
+    image: nginx-lab-nginx:alpine
+    container_name: nginx-rate-limit
+    ports:
+      - "8094:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - rate-network
+
+  backend:
+    build: ./backend
+    image: nginx-lab-rate-backend
+    container_name: nginx-rate-backend
+    networks:
+      - rate-network
+
+networks:
+  rate-network:
+    driver: bridge

@@ -1,0 +1,17 @@
+services:
+
+  nginx:
+    image: nginx-lab-nginx:alpine
+    restart: unless-stopped
+    networks:
+      - lab-network
+
+  backend:
+    image: nginx-lab-python:3.12
+    restart: unless-stopped
+    networks:
+      - lab-network
+
+networks:
+  lab-network:
+    driver: bridge

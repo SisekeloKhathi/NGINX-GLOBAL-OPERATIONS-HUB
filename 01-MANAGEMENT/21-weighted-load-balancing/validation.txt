@@ -1,0 +1,17 @@
+NGINX WEIGHTED LOAD BALANCING LAB — VALIDATION
+
+Date: 2026-09-01
+
+[PASS] NGINX container running
+[PASS] Backend 1 running
+[PASS] Backend 2 running
+[PASS] NGINX configuration syntax
+[PASS] Backend 1 configured weight=3
+[PASS] Backend 2 configured weight=1
+[PASS] 20-request distribution confirmed
+[PASS] 100-request distribution confirmed
+[PASS] Backend 1 received 75 requests
+[PASS] Backend 2 received 25 requests
+[PASS] Distribution = 75/25
+
+STATUS: COMPLETE

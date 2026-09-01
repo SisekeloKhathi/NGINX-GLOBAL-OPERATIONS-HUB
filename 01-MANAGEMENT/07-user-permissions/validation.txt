@@ -1,0 +1,39 @@
+NGINX USER PERMISSIONS LAB — VALIDATION
+
+Date: 2026-08-31
+
+[PASS] Docker Compose configuration
+[PASS] NGINX configuration syntax
+[PASS] NGINX running
+[PASS] Public endpoint accessible
+[PASS] Protected endpoint rejects unauthenticated request
+[PASS] HTTP 401 returned without credentials
+[PASS] Basic Authentication challenge returned
+[PASS] Valid credentials accepted
+[PASS] Protected endpoint returns HTTP 200
+
+ACCESS CONTROL:
+
+/public
+  ↓
+HTTP 200
+  ↓
+ACCESS GRANTED
+
+/admin
+  ↓
+NO CREDENTIALS
+  ↓
+HTTP 401
+  ↓
+ACCESS DENIED
+
+/admin
+  ↓
+admin + valid password
+  ↓
+HTTP 200
+  ↓
+ACCESS GRANTED
+
+STATUS: COMPLETE

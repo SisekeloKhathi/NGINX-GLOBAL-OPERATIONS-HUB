@@ -1,0 +1,20 @@
+services:
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-ip-hash
+    depends_on:
+      - backend1
+      - backend2
+    ports:
+      - "8104:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  backend1:
+    build: ./backend1
+    container_name: iphash-backend1
+
+  backend2:
+    build: ./backend2
+    container_name: iphash-backend2

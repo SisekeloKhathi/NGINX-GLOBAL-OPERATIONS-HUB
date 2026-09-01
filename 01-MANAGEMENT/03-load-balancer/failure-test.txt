@@ -1,0 +1,37 @@
+NGINX LOAD BALANCER — BACKEND FAILURE TEST
+
+Date: 2026-08-31
+
+FAILURE INJECTED:
+
+Backend-2 was stopped:
+
+docker stop nginx-backend-2
+
+TEST:
+
+10 HTTP requests were sent to:
+
+http://localhost:8081
+
+OBSERVED:
+
+BACKEND-3
+BACKEND-3
+BACKEND-1
+BACKEND-3
+BACKEND-1
+BACKEND-3
+BACKEND-1
+BACKEND-3
+BACKEND-1
+BACKEND-3
+
+RESULT:
+
+[PASS] NGINX remained available
+[PASS] Backend-1 continued serving requests
+[PASS] Backend-3 continued serving requests
+[PASS] Backend-2 received no requests
+
+FAILURE TEST = PASS

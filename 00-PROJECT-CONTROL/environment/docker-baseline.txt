@@ -1,0 +1,36 @@
+NGINX GLOBAL OPERATIONS HUB
+Docker baseline
+
+Date: 2026-08-31
+
+NGINX:
+- Container: nginx-lab
+- Image: nginx:alpine
+- Host port: 8080
+- Container port: 80
+
+BACKEND:
+- Container: nginx-backend
+- Flask application
+- Internal port: 8080
+
+NETWORK:
+- Docker Compose network: nginx-lab_default
+- NGINX resolves backend through Docker DNS
+
+VALIDATION:
+docker ps                         = PASS
+curl http://localhost:8080       = HTTP 200
+docker exec nginx-lab nginx -t   = PASS
+docker exec nginx-lab nginx -T   = PASS
+getent hosts backend              = PASS
+
+CURRENT FLOW:
+
+CLIENT
+  ↓
+NGINX :8080
+  ↓
+backend:8080
+  ↓
+HTTP 200

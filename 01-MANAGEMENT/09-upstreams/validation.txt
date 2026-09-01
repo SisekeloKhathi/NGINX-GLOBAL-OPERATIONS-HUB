@@ -1,0 +1,32 @@
+NGINX UPSTREAMS LAB — VALIDATION
+
+Date: 2026-08-31
+
+[PASS] Shared NGINX image
+[PASS] Shared Python image
+[PASS] Docker Compose configuration
+[PASS] Upstream configuration
+[PASS] NGINX configuration syntax
+[PASS] NGINX container running
+[PASS] Backend 1 running
+[PASS] Backend 2 running
+[PASS] Upstream backend resolution
+[PASS] Traffic distributed across upstreams
+
+UPSTREAM FLOW:
+
+CLIENT
+   ↓
+NGINX :8091
+   ↓
+application_pool
+   ├── backend-1:8080
+   └── backend-2:8080
+
+LOAD DISTRIBUTION TEST:
+
+10 requests
+5 → BACKEND 1
+5 → BACKEND 2
+
+STATUS: COMPLETE

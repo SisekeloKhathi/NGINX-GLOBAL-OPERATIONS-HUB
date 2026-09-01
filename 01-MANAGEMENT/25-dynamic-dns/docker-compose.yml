@@ -1,0 +1,20 @@
+services:
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-dynamic-dns
+    depends_on:
+      - backend1
+      - backend2
+    ports:
+      - "8106:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  backend1:
+    build: ./backend1
+    container_name: dns-backend1
+
+  backend2:
+    build: ./backend2
+    container_name: dns-backend2

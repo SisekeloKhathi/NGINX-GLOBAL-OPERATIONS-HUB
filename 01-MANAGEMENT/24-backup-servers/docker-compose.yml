@@ -1,0 +1,25 @@
+services:
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-backup
+    depends_on:
+      - backend1
+      - backend2
+      - backup
+    ports:
+      - "8105:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  backend1:
+    build: ./backend1
+    container_name: backup-primary1
+
+  backend2:
+    build: ./backend2
+    container_name: backup-primary2
+
+  backup:
+    build: ./backup
+    container_name: backup-server

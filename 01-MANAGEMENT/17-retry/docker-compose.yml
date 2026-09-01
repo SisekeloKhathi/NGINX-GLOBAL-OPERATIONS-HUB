@@ -1,0 +1,32 @@
+services:
+
+  nginx:
+    image: nginx-lab-nginx:alpine
+    container_name: nginx-retry
+    depends_on:
+      - backend1
+      - backend2
+    ports:
+      - "8098:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - retry-network
+
+  backend1:
+    build: ./backend1
+    image: nginx-lab-retry-backend1
+    container_name: retry-backend1
+    networks:
+      - retry-network
+
+  backend2:
+    build: ./backend2
+    image: nginx-lab-retry-backend2
+    container_name: retry-backend2
+    networks:
+      - retry-network
+
+networks:
+  retry-network:
+    driver: bridge

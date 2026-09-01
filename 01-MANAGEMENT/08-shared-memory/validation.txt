@@ -1,0 +1,53 @@
+NGINX SHARED MEMORY LAB — VALIDATION
+
+Date: 2026-08-31
+
+[PASS] Docker Compose configuration
+[PASS] NGINX configuration syntax
+[PASS] NGINX shared memory zone
+[PASS] Backend HTTP 200
+[PASS] Normal request allowed
+[PASS] Rate limiting enforced
+[PASS] Excess requests returned HTTP 503
+
+CONFIGURATION:
+
+limit_req_zone
+  zone: client_limit
+  size: 10m
+  rate: 2 requests/second
+
+TEST:
+
+Normal request:
+HTTP 200
+
+10 rapid requests:
+200
+503
+503
+503
+200
+503
+503
+200
+503
+200
+
+RESULT:
+
+NGINX shared memory is maintaining
+request-rate state and enforcing the
+configured limit.
+
+FLOW:
+
+CLIENT
+  ↓
+NGINX :8086
+  ↓
+SHARED MEMORY
+  ├── ALLOWED → BACKEND → HTTP 200
+  └── RATE EXCEEDED → HTTP 503
+
+STATUS: COMPLETE

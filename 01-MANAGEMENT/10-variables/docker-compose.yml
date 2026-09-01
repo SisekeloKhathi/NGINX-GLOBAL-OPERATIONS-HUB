@@ -1,0 +1,26 @@
+services:
+
+  nginx:
+    image: nginx-lab-nginx:alpine
+    container_name: nginx-variables
+    ports:
+      - "8092:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - lab-network
+
+  backend:
+    build:
+      context: ./backend
+    image: nginx-lab-variables-backend
+    container_name: nginx-variables-backend
+    networks:
+      - lab-network
+
+networks:
+
+  lab-network:
+    driver: bridge

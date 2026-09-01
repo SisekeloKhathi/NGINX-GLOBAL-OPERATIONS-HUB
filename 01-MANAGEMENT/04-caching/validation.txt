@@ -1,0 +1,21 @@
+NGINX CACHE LAB — VALIDATION
+
+Date: 2026-08-31
+
+[PASS] Docker Compose configuration
+[PASS] NGINX configuration syntax
+[PASS] NGINX cache zone
+[PASS] Backend HTTP 200
+[PASS] First request = CACHE MISS
+[PASS] Second request = CACHE HIT
+[PASS] Cached response returned without new backend request
+
+CACHE FLOW:
+
+CLIENT
+  ↓
+NGINX :8082
+  ↓
+CACHE
+  ├── MISS → BACKEND → STORE
+  └── HIT  → RETURN CACHE

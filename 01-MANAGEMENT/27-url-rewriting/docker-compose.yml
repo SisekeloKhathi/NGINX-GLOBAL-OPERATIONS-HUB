@@ -1,0 +1,15 @@
+services:
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-rewrite
+    depends_on:
+      - backend
+    ports:
+      - "8108:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  backend:
+    build: ./backend
+    container_name: rewrite-backend

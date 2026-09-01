@@ -1,0 +1,51 @@
+NGINX LOAD BALANCER LAB — VALIDATION
+
+Date: 2026-08-31
+
+ARCHITECTURE:
+
+CLIENT
+  ↓
+NGINX :8081
+  ↓
+backend_pool
+  ├── backend-1
+  ├── backend-2
+  └── backend-3
+
+VALIDATION:
+
+[PASS] Three backend containers built
+[PASS] Three backend containers running
+[PASS] NGINX container running
+[PASS] NGINX configuration loaded
+[PASS] NGINX upstream pool configured
+[PASS] Client reached NGINX
+[PASS] Requests distributed across backend-1
+[PASS] Requests distributed across backend-2
+[PASS] Requests distributed across backend-3
+
+TEST:
+
+10 HTTP requests were sent to:
+
+http://localhost:8081
+
+Observed:
+
+BACKEND-1
+BACKEND-2
+BACKEND-3
+BACKEND-1
+BACKEND-2
+BACKEND-3
+BACKEND-1
+BACKEND-2
+BACKEND-3
+BACKEND-1
+
+RESULT:
+
+LOAD BALANCING = PASS
+
+NGINX is distributing requests across multiple upstream servers.

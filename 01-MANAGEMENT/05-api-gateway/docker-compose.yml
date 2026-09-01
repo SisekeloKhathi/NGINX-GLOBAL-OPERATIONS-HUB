@@ -1,0 +1,28 @@
+services:
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-api-gateway
+    ports:
+      - "8083:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - users-api
+      - orders-api
+      - health-api
+
+  users-api:
+    build:
+      context: ./users-api
+    container_name: nginx-users-api
+
+  orders-api:
+    build:
+      context: ./orders-api
+    container_name: nginx-orders-api
+
+  health-api:
+    build:
+      context: ./health-api
+    container_name: nginx-health-api

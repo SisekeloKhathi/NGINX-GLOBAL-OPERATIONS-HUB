@@ -1,0 +1,45 @@
+HTTP/1.1 301 Moved Permanently
+Server: nginx/1.31.4
+Date: Mon, 31 Aug 2026 20:45:40 GMT
+Content-Type: text/html; charset=UTF-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+Location: https://files-03.restcountries.com/countries.00/legacy.json
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=DU4OwlPw%2BEcsuGwh9Rx0ueMzwV9iXm5%2BIPyhcXv%2FI4UFNXK73Py7LqxTvrQuGHEykYNlwHgUmXYxNHGhSn4cLjhIiKZ%2BOtqfkftFbcFD5YYXvkA2nhhhJ3fG2o%2FQAPcGjCRmyQ%3D%3D"}]}
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+CF-RAY: a33ee15598f6bbf0-JNB
+
+HTTP/1.1 200 OK
+Date: Mon, 31 Aug 2026 20:45:40 GMT
+Content-Type: application/json
+Content-Length: 261
+Connection: keep-alive
+access-control-allow-origin: *
+access-control-allow-methods: GET
+access-control-max-age: 3000
+last-modified: Mon, 13 Jul 2026 00:19:02 GMT
+x-amz-server-side-encryption: AES256
+Accept-Ranges: bytes
+Server: cloudflare
+etag: "6938e4853cd51623f62e76953d47dc36"
+x-cache: Hit from cloudfront
+via: 1.1 053522bbb32043c95d5ae84fbcdbba56.cloudfront.net (CloudFront)
+x-amz-cf-pop: JNB51-P4
+x-amz-cf-id: ZksiRxXca9QmIhROTKYgpS9IwVaQikU78G1uhj6wN2xPQcCNAITPbA==
+Age: 85482
+Cache-Control: max-age=14400
+cf-cache-status: HIT
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=13oWnvRGJAAROmhEzmUf4SyXK1eVhMXNVV6z5V7YuZy1ELn2FtrA%2FvkGBmvfKUSzDS9nP4ugqgg7Ni%2B5h6yeQCPtsmYfjpACsBuEEUcKVtvg1kJHpyuUg%2BH%2Fv8HWn8HlaxuBzCY%2BgLT8MJw52Q%3D%3D"}]}
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+CF-RAY: a33ee1565d12253d-JNB
+alt-svc: h3=":443"; ma=86400
+
+{
+    "success": false,
+    "data": null,
+    "errors": [
+        {
+            "message": "This API version has been deprecated. Please visit https://restcountries.com/docs/countries/legacy-api-deprecation to migrate to our new version (v5)."
+        }
+    ]
+}

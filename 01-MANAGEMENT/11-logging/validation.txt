@@ -1,0 +1,43 @@
+NGINX LOGGING LAB — VALIDATION
+
+Date: 2026-08-31
+
+[PASS] Shared NGINX image
+[PASS] Shared Python image
+[PASS] Docker Compose configuration
+[PASS] NGINX logging configuration
+[PASS] NGINX container running
+[PASS] Backend container running
+[PASS] HTTP 200 request logged
+[PASS] HTTP 500 request logged
+[PASS] Upstream status logged
+[PASS] Request time logged
+[PASS] Upstream response time logged
+[PASS] Slow backend identified
+[PASS] Docker stdout logging verified
+
+LOGGING FLOW:
+
+CLIENT
+   ↓
+NGINX :8089
+   ↓
+BACKEND
+   ↓
+NGINX LOG FORMAT
+   ├── status
+   ├── upstream_status
+   ├── request_time
+   └── upstream_time
+   ↓
+Docker stdout
+   ↓
+docker logs
+
+TEST RESULTS:
+
+/       → 200
+/slow   → 200 / ~2 seconds
+/error  → 500
+
+STATUS: COMPLETE

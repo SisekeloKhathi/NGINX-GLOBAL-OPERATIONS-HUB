@@ -1,0 +1,30 @@
+NGINX RETRY LAB — VALIDATION
+
+Date: 2026-09-01
+
+[PASS] NGINX container running
+[PASS] NGINX configuration syntax
+[PASS] Backend 1 returns HTTP 500
+[PASS] proxy_next_upstream configured
+[PASS] NGINX retries failed upstream
+[PASS] Backend 2 receives retry
+[PASS] Final response HTTP 200
+[PASS] 10/10 requests recovered successfully
+
+FLOW:
+
+CLIENT
+   ↓
+NGINX :8098
+   ↓
+BACKEND 1
+   ❌ HTTP 500
+   ↓
+RETRY
+   ↓
+BACKEND 2
+   ✅ HTTP 200
+   ↓
+CLIENT
+
+STATUS: COMPLETE

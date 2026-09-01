@@ -1,0 +1,23 @@
+REVERSE PROXY LAB — VALIDATION
+
+Date: 2026-08-31
+
+[PASS] Docker containers running
+[PASS] NGINX configuration syntax
+[PASS] NGINX active configuration
+[PASS] Docker DNS resolves backend
+[PASS] Client reaches NGINX
+[PASS] NGINX forwards request
+[PASS] Backend returns HTTP 200
+
+Result:
+
+CLIENT
+  ↓
+NGINX
+  ↓
+backend
+  ↓
+HTTP 200
+
+STATUS: COMPLETE

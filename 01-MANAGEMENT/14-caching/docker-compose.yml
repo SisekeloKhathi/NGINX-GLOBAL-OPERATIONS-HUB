@@ -1,0 +1,24 @@
+services:
+  nginx:
+    image: nginx-lab-nginx:alpine
+    container_name: nginx-cache
+    ports:
+      - "8095:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./cache:/var/cache/nginx
+    depends_on:
+      - backend
+    networks:
+      - cache-network
+
+  backend:
+    build: ./backend
+    image: nginx-lab-cache-backend
+    container_name: nginx-cache-backend
+    networks:
+      - cache-network
+
+networks:
+  cache-network:
+    driver: bridge

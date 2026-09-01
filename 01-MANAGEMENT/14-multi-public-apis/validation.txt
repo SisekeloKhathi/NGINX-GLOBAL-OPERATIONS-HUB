@@ -1,0 +1,46 @@
+NGINX MULTI PUBLIC APIs LAB — VALIDATION
+
+Date: 2026-08-31
+
+[PASS] NGINX container running
+[PASS] NGINX configuration syntax
+[PASS] HTTPS DNS resolution
+[PASS] Open-Meteo API proxy
+[PASS] REST Countries API proxy
+[PASS] httpbin status endpoint
+[PASS] httpbin delayed endpoint
+[PASS] HTTPS SNI configuration
+[PASS] Upstream redirect identified
+[PASS] Redirect followed successfully
+[PASS] Final REST Countries response returned 200
+
+API FLOW:
+
+CLIENT
+   ↓
+NGINX :8095
+   ├── /weather
+   │      ↓
+   │   Open-Meteo
+   │
+   ├── /countries
+   │      ↓
+   │   REST Countries
+   │      ↓
+   │   301 Redirect
+   │      ↓
+   │   files-03.restcountries.com
+   │      ↓
+   │   200 OK
+   │
+   ├── /status
+   │      ↓
+   │   httpbin
+   │
+   └── /delay
+          ↓
+       httpbin
+          ↓
+       delayed response
+
+STATUS: COMPLETE
