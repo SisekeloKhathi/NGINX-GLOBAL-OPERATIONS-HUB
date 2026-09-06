@@ -1,0 +1,9 @@
+services:
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-public-data-gateway
+    ports:
+      - "8118:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
