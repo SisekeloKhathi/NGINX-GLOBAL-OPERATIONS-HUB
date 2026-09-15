@@ -12,19 +12,14 @@ import time
 # Import datetime so each collection cycle has a timestamp in the terminal.
 from datetime import datetime
 
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
 
 # Define the PostgreSQL connection details for the existing operations database.
 DB_CONFIG = {
-    "host": os.getenv("DB_HOST", "localhost"),
-    "port": int(os.getenv("DB_PORT", 5432)),
-    "database": os.getenv("DB_NAME", "ops_db"),
-    "user": os.getenv("DB_USER", "admin"),
-    "password": os.getenv("DB_PASSWORD"),
+    "host": "localhost",
+    "port": 5432,
+    "database": "ops_db",
+    "user": "admin",
+    "password": "secret"
 }
 
 
@@ -37,6 +32,14 @@ def collect_flights():
     try:
         # Request the current aircraft state data through NGINX.
         response = requests.get(URL, timeout=15)
+
+        # If the gateway is serving a cached 429, back off politely.
+        # This aligns with the gateway's own 429 cache window (15 minutes).
+        if response.status_code == 429:
+            print(f"\n{datetime.now():%Y-%m-%d %H:%M:%S}")
+            print("Rate limited by OpenSky - backing off 15 minutes")
+            time.sleep(900)
+            return
 
         # Raise an error if the gateway returns an unsuccessful HTTP status.
         response.raise_for_status()
@@ -60,7 +63,6 @@ def collect_flights():
         """)
 
         # OpenSky stores aircraft state vectors in the "states" array.
-        # Each element represents one aircraft currently visible to OpenSky.
         states = data.get("states") or []
 
         # Count the aircraft returned by the API for this collection cycle.
@@ -96,13 +98,7 @@ def collect_flights():
 
 
 if __name__ == "__main__":
-    # Identify the collector when the process starts.
     print("Starting Flight Collector...")
-
-    # Continue collecting flight data until the process is stopped manually.
     while True:
-        # Collect the latest aircraft count and store it in PostgreSQL.
         collect_flights()
-
-        # Wait 60 seconds before collecting the next measurement.
         time.sleep(60)
