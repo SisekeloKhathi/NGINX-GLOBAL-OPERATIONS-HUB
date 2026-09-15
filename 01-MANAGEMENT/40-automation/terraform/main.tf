@@ -8,7 +8,7 @@ resource "docker_volume" "postgres_data" {
 }
 
 resource "docker_volume" "grafana_data" {
-  name = "ops-grafana-data"
+  name = "grafana-storage"
 }
 
 resource "docker_image" "postgres" {
@@ -84,9 +84,28 @@ resource "docker_container" "nginx_gateway" {
     external = var.gateway_port
   }
 
+  ports {
+    internal = 443
+    external = 8443
+  }
+
   mounts {
     target    = "/etc/nginx/nginx.conf"
     source    = abspath(var.gateway_config_path)
+    type      = "bind"
+    read_only = true
+  }
+
+  mounts {
+    target    = "/etc/nginx/.htpasswd"
+    source    = abspath("../../37-public-data-gateway/nginx/.htpasswd")
+    type      = "bind"
+    read_only = true
+  }
+
+  mounts {
+    target    = "/etc/nginx/certs"
+    source    = abspath("../../37-public-data-gateway/certs")
     type      = "bind"
     read_only = true
   }
