@@ -69,6 +69,9 @@ resource "docker_container" "grafana" {
   env = [
     "GF_SERVER_ROOT_URL=http://localhost:8118/dashboard/",
     "GF_SERVER_SERVE_FROM_SUB_PATH=true",
+    "GF_AUTH_ANONYMOUS_ENABLED=true",
+    "GF_AUTH_ANONYMOUS_ORG_ROLE=Admin",
+    "GF_AUTH_DISABLE_LOGIN_FORM=true",
   ]
   volumes {
     volume_name    = docker_volume.grafana_data.name
