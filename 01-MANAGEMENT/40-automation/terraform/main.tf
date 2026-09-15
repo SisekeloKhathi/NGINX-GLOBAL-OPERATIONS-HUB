@@ -66,6 +66,10 @@ resource "docker_container" "grafana" {
   name    = "grafana"
   image   = docker_image.grafana.image_id
   restart = "unless-stopped"
+  env = [
+    "GF_SERVER_ROOT_URL=http://localhost:8118/dashboard/",
+    "GF_SERVER_SERVE_FROM_SUB_PATH=true",
+  ]
   volumes {
     volume_name    = docker_volume.grafana_data.name
     container_path = "/var/lib/grafana"
