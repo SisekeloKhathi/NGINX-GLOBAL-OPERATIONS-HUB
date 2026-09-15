@@ -27,7 +27,7 @@
   failed_when: verify_tables.stdout | int < 6
 
 - name: Check Grafana HTTP health endpoint
-  ansible.builtin.shell: docker exec grafana wget -qO- http://localhost:3000/api/health
+  ansible.builtin.command: docker exec grafana wget -qO- http://localhost:3000/api/health
   register: verify_grafana_health
   changed_when: false
   failed_when: '"ok" not in verify_grafana_health.stdout'
