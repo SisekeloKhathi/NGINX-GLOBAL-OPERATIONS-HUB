@@ -143,7 +143,7 @@ resource "docker_container" "nginx_gateway" {
   }
   mounts {
     target    = "/var/www/screen"
-    source    = abspath("../../../../17-DASHBOARD/06-operations-center/screens")
+    source    = abspath("../../../17-DASHBOARD/06-operations-center/screens")
     type      = "bind"
     read_only = true
   }
