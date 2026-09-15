@@ -3,3 +3,5 @@
 01-MANAGEMENT/14-caching/cache/*.backup-*
 *.backup-*
 cache/
+*.backup*
+*.before-*
