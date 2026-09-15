@@ -1,0 +1,81 @@
+name: Validate
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  terraform:
+    name: Terraform
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 01-MANAGEMENT/40-automation/terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.6.0"
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive
+      - name: Terraform init
+        run: terraform init -backend=false
+      - name: Terraform validate
+        run: terraform validate
+
+  ansible:
+    name: Ansible
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 01-MANAGEMENT/40-automation/ansible
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ansible-lint
+        run: pip install ansible-lint
+      - name: Install collections
+        run: ansible-galaxy collection install -r requirements.yml
+      - name: ansible-lint
+        run: ansible-lint playbooks/ roles/
+      - name: Syntax check
+        run: |
+          for pb in playbooks/*.yml; do
+            ansible-playbook --syntax-check "$pb"
+          done
+
+  python:
+    name: Python
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 01-MANAGEMENT/40-automation
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile all Python files
+        run: python -m compileall engine/ scripts/
+
+  collectors:
+    name: Collectors
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 01-MANAGEMENT/38-monitoring
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile collector scripts
+        run: python -m compileall .
