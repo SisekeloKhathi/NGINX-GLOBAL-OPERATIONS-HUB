@@ -1,4 +1,9 @@
 ---
-- import_playbook: postgres_schema.yml
-- import_playbook: gateway.yml
-- import_playbook: verify.yml
+- name: Run Postgres schema role
+  import_playbook: postgres_schema.yml
+
+- name: Run gateway role
+  import_playbook: gateway.yml
+
+- name: Run verify role
+  import_playbook: verify.yml

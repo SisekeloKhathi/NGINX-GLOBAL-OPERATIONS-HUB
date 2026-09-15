@@ -1,37 +1,37 @@
 ---
 - name: Check NGINX process is running
-  ansible.builtin.shell: docker exec nginx-public-data-gateway pgrep nginx
-  register: nginx_proc
+  ansible.builtin.command: docker exec nginx-public-data-gateway pgrep nginx
+  register: verify_nginx_proc
   changed_when: false
-  failed_when: nginx_proc.rc != 0
+  failed_when: verify_nginx_proc.rc != 0
 
 - name: Check NGINX config syntax
-  ansible.builtin.shell: docker exec nginx-public-data-gateway nginx -t
-  register: nginx_test
+  ansible.builtin.command: docker exec nginx-public-data-gateway nginx -t
+  register: verify_nginx_test
   changed_when: false
-  failed_when: nginx_test.rc != 0
+  failed_when: verify_nginx_test.rc != 0
 
 - name: Check Postgres is accepting connections
-  ansible.builtin.shell: docker exec postgres pg_isready -U admin -d ops_db
-  register: pg_ready
+  ansible.builtin.command: docker exec postgres pg_isready -U admin -d ops_db
+  register: verify_pg_ready
   changed_when: false
-  failed_when: pg_ready.rc != 0
+  failed_when: verify_pg_ready.rc != 0
 
 - name: Check required tables exist in ops_db
   ansible.builtin.shell: >
     docker exec postgres psql -U admin -d ops_db -tAc
     "SELECT COUNT(*) FROM information_schema.tables
      WHERE table_name IN ('fx_rates','weather_data','flight_states','economic_data','automation_events','automation_state');"
-  register: tables
+  register: verify_tables
   changed_when: false
-  failed_when: tables.stdout | int < 6
+  failed_when: verify_tables.stdout | int < 6
 
 - name: Check Grafana HTTP health endpoint
   ansible.builtin.shell: docker exec grafana wget -qO- http://localhost:3000/api/health
-  register: grafana_health
+  register: verify_grafana_health
   changed_when: false
-  failed_when: '"ok" not in grafana_health.stdout'
+  failed_when: '"ok" not in verify_grafana_health.stdout'
 
 - name: Report success
   ansible.builtin.debug:
-    msg: "All checks passed — NGINX, Postgres, Grafana healthy, schema present."
+    msg: "All checks passed - NGINX, Postgres, Grafana healthy, schema present."
