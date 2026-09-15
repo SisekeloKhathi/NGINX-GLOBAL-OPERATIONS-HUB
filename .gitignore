@@ -2,3 +2,4 @@
 *.key
 01-MANAGEMENT/14-caching/cache/*.backup-*
 *.backup-*
+cache/
