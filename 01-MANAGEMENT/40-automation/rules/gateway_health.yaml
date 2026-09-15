@@ -1,0 +1,16 @@
+name: gateway_health
+description: NGINX gateway weather endpoint failing
+severity: critical
+enabled: true
+trigger:
+  type: http
+  url: http://localhost:8118/api/weather/v1/forecast?latitude=-26.2041&longitude=28.0473&current_weather=true
+  timeout_seconds: 10
+  consecutive_failures: 2
+actions:
+  - type: log_event
+  - type: webhook
+    url: ${WEBHOOK_URL}
+    body:
+      text: "Gateway failing: {{ observed_value }} consecutive failures"
+cooldown_seconds: 900

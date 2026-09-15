@@ -1,0 +1,19 @@
+name: weather_storm
+description: Severe weather near Johannesburg
+severity: warning
+enabled: true
+trigger:
+  type: sql
+  query: |
+    SELECT weathercode, windspeed, temperature FROM weather_data
+    ORDER BY timestamp DESC LIMIT 1
+condition:
+  comparator: expression
+  expression: "weathercode >= 95 or windspeed >= 40"
+actions:
+  - type: log_event
+  - type: webhook
+    url: ${WEBHOOK_URL}
+    body:
+      text: "Severe weather code {{ observed_value }}"
+cooldown_seconds: 1800

@@ -1,0 +1,20 @@
+name: fx_zar_high
+description: USD/ZAR exceeded 16.50
+severity: warning
+enabled: true
+trigger:
+  type: sql
+  query: |
+    SELECT rate FROM fx_rates
+    WHERE target_currency = 'ZAR'
+    ORDER BY timestamp DESC LIMIT 1
+condition:
+  comparator: above
+  threshold: 16.50
+actions:
+  - type: log_event
+  - type: webhook
+    url: ${WEBHOOK_URL}
+    body:
+      text: "USD/ZAR is {{ observed_value }} above {{ threshold }}"
+cooldown_seconds: 1800
