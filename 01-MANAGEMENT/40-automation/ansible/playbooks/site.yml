@@ -1,0 +1,4 @@
+---
+- import_playbook: postgres_schema.yml
+- import_playbook: gateway.yml
+- import_playbook: verify.yml

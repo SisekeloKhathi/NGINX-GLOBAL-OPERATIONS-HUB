@@ -1,0 +1,6 @@
+---
+- name: Ensure Postgres schema exists
+  hosts: local
+  gather_facts: false
+  roles:
+    - postgres_schema

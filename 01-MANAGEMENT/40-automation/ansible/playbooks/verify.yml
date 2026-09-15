@@ -1,0 +1,6 @@
+---
+- name: Verify operations stack health
+  hosts: local
+  gather_facts: false
+  roles:
+    - verify

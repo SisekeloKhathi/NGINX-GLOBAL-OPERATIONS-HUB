@@ -1,0 +1,6 @@
+---
+- name: Configure the NGINX public data gateway
+  hosts: local
+  gather_facts: false
+  roles:
+    - gateway

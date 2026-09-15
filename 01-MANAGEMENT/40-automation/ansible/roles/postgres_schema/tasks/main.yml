@@ -1,0 +1,12 @@
+---
+- name: Check required tables exist
+  ansible.builtin.shell: >
+    docker exec postgres psql -U admin -d ops_db -tAc
+    "SELECT COUNT(*) FROM information_schema.tables
+     WHERE table_name IN ('fx_rates','weather_data','flight_states','economic_data','automation_events','automation_state');"
+  register: tables
+  changed_when: false
+
+- name: Report schema status
+  ansible.builtin.debug:
+    msg: "Found {{ tables.stdout }} of 6 expected tables."

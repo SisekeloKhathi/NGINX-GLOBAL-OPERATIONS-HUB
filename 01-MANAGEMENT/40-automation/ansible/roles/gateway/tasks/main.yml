@@ -1,0 +1,10 @@
+---
+- name: Validate NGINX config inside the container
+  ansible.builtin.shell: docker exec nginx-public-data-gateway nginx -t
+  register: nginx_test
+  changed_when: false
+  failed_when: nginx_test.rc != 0
+
+- name: Report gateway status
+  ansible.builtin.debug:
+    msg: "Gateway config is valid. Bind-mounted from repo — no push needed."
