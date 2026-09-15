@@ -1,3 +1,4 @@
 *.htpasswd
 *.key
-01-MANAGEMENT/14-caching/cache/
+01-MANAGEMENT/14-caching/cache/*.backup-*
+*.backup-*
