@@ -101,4 +101,4 @@ if __name__ == "__main__":
     print("Starting Flight Collector...")
     while True:
         collect_flights()
-        time.sleep(60)
+        time.sleep(300)
