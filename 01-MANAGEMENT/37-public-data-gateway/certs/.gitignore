@@ -1,3 +1,4 @@
 !gateway.key
 *.srl
 *.csr
+*.p12
