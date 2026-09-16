@@ -7,3 +7,6 @@ cache/
 *.before-*
 *.backup*
 *.before-*
+
+# Database dumps — contain real data, do not track
+13-DATA-PLATFORM/08-backups/*.sql

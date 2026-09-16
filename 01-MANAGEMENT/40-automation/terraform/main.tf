@@ -138,13 +138,13 @@ resource "docker_container" "nginx_gateway" {
   }
   mounts {
     target    = "/etc/nginx/.htpasswd"
-    source    = abspath("../../37-public-data-gateway/nginx/.htpasswd")
+    source    = abspath("../../../secrets/.htpasswd")
     type      = "bind"
     read_only = true
   }
   mounts {
-    target    = "/etc/nginx/certs"
-    source    = abspath("../../37-public-data-gateway/certs")
+    target    = "/etc/nginx/secrets"
+    source    = abspath("../../../secrets")
     type      = "bind"
     read_only = true
   }
@@ -155,4 +155,56 @@ resource "docker_container" "nginx_gateway" {
     read_only = true
   }
   networks_advanced { name = docker_network.ops.name }
+}
+
+resource "docker_image" "ollama" {
+  name         = "ollama/ollama:latest"
+  keep_locally = true
+}
+
+resource "docker_volume" "ollama_models" {
+  name = "ollama-models"
+}
+
+resource "docker_container" "ollama" {
+  name    = "ollama"
+  image   = docker_image.ollama.image_id
+  restart = "unless-stopped"
+
+  # I am not publishing 11434 to the host. Only other containers on
+  # ops-network can reach it, and only NGINX or the self-healer
+  # will. This matches the "NGINX is the only public surface" rule.
+  volumes {
+    volume_name    = docker_volume.ollama_models.name
+    container_path = "/root/.ollama"
+  }
+
+  networks_advanced {
+    name = docker_network.ops.name
+  }
+}
+
+resource "docker_image" "self_healer" {
+  name         = "ops-self-healer:latest"
+  keep_locally = true
+}
+
+resource "docker_container" "self_healer" {
+  name    = "self-healer"
+  image   = docker_image.self_healer.image_id
+  restart = "unless-stopped"
+
+  env = [
+    "PROMETHEUS_URL=http://prometheus:9090",
+    "OLLAMA_URL=http://ollama:11434",
+    "NGINX_URL=http://nginx-public-data-gateway:80",
+    "OLLAMA_MODEL=llama3.1:8b",
+    "CYCLE_SECONDS=60",
+  ]
+
+  networks_advanced {
+    name = docker_network.ops.name
+  }
+
+  depends_on = [docker_container.prometheus, docker_container.ollama]
 }

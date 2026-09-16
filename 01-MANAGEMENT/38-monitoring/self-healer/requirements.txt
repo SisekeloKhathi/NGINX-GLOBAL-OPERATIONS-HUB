@@ -1,0 +1,6 @@
+# I am pinning exact versions so a future pip install of the same
+# file produces the same runtime. Flask for the HTTP endpoints,
+# requests for talking to Prometheus and Ollama. Both are widely
+# used and stable. Reference: pip's requirements file format docs.
+flask==3.0.3
+requests==2.32.3
