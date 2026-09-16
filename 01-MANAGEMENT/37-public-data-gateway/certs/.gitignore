@@ -1,1 +1,3 @@
 !gateway.key
+*.srl
+*.csr
