@@ -72,9 +72,6 @@ resource "docker_container" "grafana" {
     "GF_AUTH_ANONYMOUS_ENABLED=true",
     "GF_AUTH_ANONYMOUS_ORG_ROLE=Admin",
     "GF_AUTH_DISABLE_LOGIN_FORM=true",
-    "GF_AUTH_ANONYMOUS_ENABLED=true",
-    "GF_AUTH_ANONYMOUS_ORG_ROLE=Admin",
-    "GF_AUTH_DISABLE_LOGIN_FORM=true",
   ]
   volumes {
     volume_name    = docker_volume.grafana_data.name
