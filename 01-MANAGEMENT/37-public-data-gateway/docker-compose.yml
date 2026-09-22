@@ -14,3 +14,16 @@ services:
 
       # Public website served by NGINX
       - ../../web/public:/usr/share/nginx/html:ro
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - ops-network
+
+volumes:
+  redis-data:
