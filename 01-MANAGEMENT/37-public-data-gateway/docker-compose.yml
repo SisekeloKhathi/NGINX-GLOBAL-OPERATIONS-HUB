@@ -27,3 +27,7 @@ services:
 
 volumes:
   redis-data:
+
+networks:
+  ops-network:
+    external: true

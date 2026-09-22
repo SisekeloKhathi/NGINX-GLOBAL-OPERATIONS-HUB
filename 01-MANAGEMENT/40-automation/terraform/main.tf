@@ -91,6 +91,9 @@ resource "docker_container" "display_api" {
     "DB_NAME=${var.postgres_db}",
     "DB_USER=${var.postgres_user}",
     "DB_PASSWORD=${var.postgres_password}",
+    "REDIS_HOST=redis",
+    "REDIS_PORT=6379",
+    "CACHE_TTL=60",
   ]
   networks_advanced { name = docker_network.ops.name }
   depends_on = [docker_container.postgres]
