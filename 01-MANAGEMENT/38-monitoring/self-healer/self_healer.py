@@ -1,206 +1,132 @@
-#!/usr/bin/env bash
-#
-# gen-secrets.sh — generates every secret the local stack needs.
-#
-# Idempotent by default: re-running is a no-op if the files already
-# exist. Pass --force to rotate everything (used before demos so
-# nobody sees stale credentials in a screen share).
-#
-# All output goes to secrets/, which is gitignored. See
-# secrets.example/README.md for what each file is and who uses it.
-#
-# Reference: openssl req(1), openssl x509(1), htpasswd(1), and the
-# ngx_http_ssl_module / ngx_http_auth_basic_module docs.
+#!/usr/bin/env python3
+"""Self-healing loop for the NGINX operations gateway."""
 
-set -euo pipefail
+import os
+import json
+import time
+import threading
+from datetime import datetime, timezone
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SECRETS_DIR="${REPO_ROOT}/secrets"
-FORCE=0
-[[ "${1:-}" == "--force" ]] && FORCE=1
+import requests
+from flask import Flask, jsonify
 
-log()  { printf '\033[1;34m[secrets]\033[0m %s\n' "$*"; }
-warn() { printf '\033[1;33m[secrets]\033[0m %s\n' "$*"; }
-die()  { printf '\033[1;31m[secrets]\033[0m %s\n' "$*" >&2; exit 1; }
+app = Flask(__name__)
 
-command -v openssl >/dev/null 2>&1 || die "openssl required"
-command -v htpasswd >/dev/null 2>&1 || warn "htpasswd missing, using openssl passwd"
+PROM   = os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
+OLLAMA = os.getenv("OLLAMA_URL",     "http://ollama:11434")
+MODEL  = os.getenv("OLLAMA_MODEL",   "llama3.2:1b")
+CYCLE  = int(os.getenv("CYCLE_SECONDS", 60))
 
-mkdir -p "${SECRETS_DIR}"
+events = []
 
-# ---------------------------------------------------------------------
-# Admin password
-#
-# One password file is the single source of truth for everything that
-# authenticates as "admin": the Basic Auth hash below, and the
-# Postgres password written into db.env. Reading it once here means
-# a re-run cannot desync the two.
-# ---------------------------------------------------------------------
-ADMIN_PW_FILE="${SECRETS_DIR}/admin_password.txt"
-if [[ ! -f "${ADMIN_PW_FILE}" || ${FORCE} -eq 1 ]]; then
-  log "generating admin password"
-  openssl rand -base64 24 | tr -d '\n' > "${ADMIN_PW_FILE}"
-  chmod 600 "${ADMIN_PW_FILE}"
-else
-  log "admin password exists"
-fi
-ADMIN_PW="$(cat "${ADMIN_PW_FILE}")"
 
-# ---------------------------------------------------------------------
-# Gateway TLS certificate
-#
-# This is the cert NGINX presents to clients on :8443. CN=localhost
-# because the lab is only reachable on localhost. The cert is
-# self-signed — a real deployment would chain to an internal CA.
-# ---------------------------------------------------------------------
-#
-# MSYS_NO_PATHCONV=1 disables Git Bash's automatic path rewriting.
-# Without it, the /C=ZA/... in -subj gets mangled into
-# C:/Program Files/Git/C=ZA/..., which produces a broken subject.
-# The doubled leading slash in -subj is a related workaround.
-if [[ ! -f "${SECRETS_DIR}/gateway.crt" || ${FORCE} -eq 1 ]]; then
-  log "generating gateway TLS cert"
-  MSYS_NO_PATHCONV=1 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout "${SECRETS_DIR}/gateway.key" \
-    -out    "${SECRETS_DIR}/gateway.crt" \
-    -subj "//C=ZA\\ST=Gauteng\\L=Johannesburg\\O=Ops\\CN=localhost" \
-    >/dev/null 2>&1
-  chmod 600 "${SECRETS_DIR}/gateway.key"
-else
-  log "gateway cert exists"
-fi
+def now():
+    return datetime.now(timezone.utc).isoformat()
 
-# ---------------------------------------------------------------------
-# Demo CA and one client certificate
-#
-# NGINX verifies mTLS clients against ca.crt. The client cert is
-# signed by the same CA so curl --cert works out of the box.
-# This CA is local-only — its private key is in secrets/ca.key and
-# must never leave this machine.
-# ---------------------------------------------------------------------
-if [[ ! -f "${SECRETS_DIR}/ca.crt" || ${FORCE} -eq 1 ]]; then
-  log "generating CA"
-  MSYS_NO_PATHCONV=1 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout "${SECRETS_DIR}/ca.key" \
-    -out    "${SECRETS_DIR}/ca.crt" \
-    -subj "//C=ZA\\ST=Gauteng\\L=Johannesburg\\O=Ops\\CN=ClientCA" \
-    >/dev/null 2>&1
-  chmod 600 "${SECRETS_DIR}/ca.key"
 
-  log "generating client cert"
-  MSYS_NO_PATHCONV=1 openssl req -nodes -newkey rsa:2048 \
-    -keyout "${SECRETS_DIR}/client.key" \
-    -out    "${SECRETS_DIR}/client.csr" \
-    -subj "//C=ZA\\ST=Gauteng\\L=Johannesburg\\O=Ops\\CN=admin-client" \
-    >/dev/null 2>&1
-  MSYS_NO_PATHCONV=1 openssl x509 -req \
-    -in "${SECRETS_DIR}/client.csr" \
-    -CA "${SECRETS_DIR}/ca.crt" -CAkey "${SECRETS_DIR}/ca.key" \
-    -CAcreateserial \
-    -out "${SECRETS_DIR}/client.crt" -days 365 \
-    >/dev/null 2>&1
-  chmod 600 "${SECRETS_DIR}/client.key"
-  rm -f "${SECRETS_DIR}/client.csr" "${SECRETS_DIR}/ca.srl"
-#!/usr/bin/env bash
-#
-# gen-secrets.sh — generates every secret the local stack needs.
-#
-# Idempotent by default: re-running is a no-op if the files already
-# exist. Pass --force to rotate everything (used before demos so
-# nobody sees stale credentials in a screen share).
-#
-# All output goes to secrets/, which is gitignored. See
-# secrets.example/README.md for what each file is and who uses it.
-#
-# Reference: openssl req(1), openssl x509(1), htpasswd(1), and the
-# ngx_http_ssl_module / ngx_http_auth_basic_module docs.
+def query_prom(expr):
+    """Return a single scalar from Prometheus, or None, or {'error': ...}."""
+    try:
+        r = requests.get(f"{PROM}/api/v1/query", params={"query": expr}, timeout=5)
+        r.raise_for_status()
+        result = r.json().get("data", {}).get("result", [])
+        return float(result[0]["value"][1]) if result else None
+    except Exception as e:
+        return {"error": str(e)}
 
-set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SECRETS_DIR="${REPO_ROOT}/secrets"
-FORCE=0
-[[ "${1:-}" == "--force" ]] && FORCE=1
+def ask_ollama(prompt):
+    """Return the model's reply, or an error string on failure."""
+    try:
+        r = requests.post(
+            f"{OLLAMA}/api/generate",
+            json={"model": MODEL, "prompt": prompt, "stream": False},
+            timeout=60,
+        )
+        r.raise_for_status()
+        return r.json().get("response", "")
+    except Exception as e:
+        return f"ollama_error: {e}"
 
-log()  { printf '\033[1;34m[secrets]\033[0m %s\n' "$*"; }
-warn() { printf '\033[1;33m[secrets]\033[0m %s\n' "$*"; }
-die()  { printf '\033[1;31m[secrets]\033[0m %s\n' "$*" >&2; exit 1; }
 
-command -v openssl >/dev/null 2>&1 || die "openssl required"
-command -v htpasswd >/dev/null 2>&1 || warn "htpasswd missing, using openssl passwd"
+def execute_action(action, context):
+    """Execute a pre-approved remediation. LLM proposes, this disposes.
 
-mkdir -p "${SECRETS_DIR}"
+    restart_nginx is deliberately NOT implemented. A false positive on
+    a connection-count threshold would cause an outage that a text
+    diagnosis cannot justify.
+    """
+    if action == "restart_nginx":
+        return "refused: manual approval required"
+    if action == "log_and_alert":
+        return "logged"
+    if action == "no_op":
+        return "no_op"
+    return f"unknown action: {action}"
 
-# ---------------------------------------------------------------------
-# Admin password
-#
-# One password file is the single source of truth for everything that
-# authenticates as "admin": the Basic Auth hash below, and the
-# Postgres password written into db.env. Reading it once here means
-# a re-run cannot desync the two.
-# ---------------------------------------------------------------------
-ADMIN_PW_FILE="${SECRETS_DIR}/admin_password.txt"
-if [[ ! -f "${ADMIN_PW_FILE}" || ${FORCE} -eq 1 ]]; then
-  log "generating admin password"
-  openssl rand -base64 24 | tr -d '\n' > "${ADMIN_PW_FILE}"
-  chmod 600 "${ADMIN_PW_FILE}"
-else
-  log "admin password exists"
-fi
-ADMIN_PW="$(cat "${ADMIN_PW_FILE}")"
 
-# ---------------------------------------------------------------------
-# Gateway TLS certificate
-#
-# This is the cert NGINX presents to clients on :8443. CN=localhost
-# because the lab is only reachable on localhost. The cert is
-# self-signed — a real deployment would chain to an internal CA.
-# ---------------------------------------------------------------------
-#
-# MSYS_NO_PATHCONV=1 disables Git Bash's automatic path rewriting.
-# Without it, the /C=ZA/... in -subj gets mangled into
-# C:/Program Files/Git/C=ZA/..., which produces a broken subject.
-# The doubled leading slash in -subj is a related workaround.
-if [[ ! -f "${SECRETS_DIR}/gateway.crt" || ${FORCE} -eq 1 ]]; then
-  log "generating gateway TLS cert"
-  MSYS_NO_PATHCONV=1 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout "${SECRETS_DIR}/gateway.key" \
-    -out    "${SECRETS_DIR}/gateway.crt" \
-    -subj "//C=ZA\\ST=Gauteng\\L=Johannesburg\\O=Ops\\CN=localhost" \
-    >/dev/null 2>&1
-  chmod 600 "${SECRETS_DIR}/gateway.key"
-else
-  log "gateway cert exists"
-fi
+def cycle():
+    """One evaluation pass: read metrics, check anomaly, maybe ask, log."""
+    metrics = {
+        "connections_active":  query_prom("nginx_connections_active"),
+        "connections_reading": query_prom("nginx_connections_reading"),
+        "connections_writing": query_prom("nginx_connections_writing"),
+    }
 
-# ---------------------------------------------------------------------
-# Demo CA and one client certificate
-#
-# NGINX verifies mTLS clients against ca.crt. The client cert is
-# signed by the same CA so curl --cert works out of the box.
-# This CA is local-only — its private key is in secrets/ca.key and
-# must never leave this machine.
-# ---------------------------------------------------------------------
-if [[ ! -f "${SECRETS_DIR}/ca.crt" || ${FORCE} -eq 1 ]]; then
-  log "generating CA"
-  MSYS_NO_PATHCONV=1 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout "${SECRETS_DIR}/ca.key" \
-    -out    "${SECRETS_DIR}/ca.crt" \
-    -subj "//C=ZA\\ST=Gauteng\\L=Johannesburg\\O=Ops\\CN=ClientCA" \
-    >/dev/null 2>&1
-  chmod 600 "${SECRETS_DIR}/ca.key"
+    conn = metrics.get("connections_active")
+    busy = (metrics.get("connections_reading") or 0) + (
+        metrics.get("connections_writing") or 0
+    )
 
-  log "generating client cert"
-  MSYS_NO_PATHCONV=1 openssl req -nodes -newkey rsa:2048 \
-    -keyout "${SECRETS_DIR}/client.key" \
-    -out    "${SECRETS_DIR}/client.csr" \
-    -subj "//C=ZA\\ST=Gauteng\\L=Johannesburg\\O=Ops\\CN=admin-client" \
-    >/dev/null 2>&1
-  MSYS_NO_PATHCONV=1 openssl x509 -req \
-    -in "${SECRETS_DIR}/client.csr" \
-    -CA "${SECRETS_DIR}/ca.crt" -CAkey "${SECRETS_DIR}/ca.key" \
-    -CAcreateserial \
-    -out "${SECRETS_DIR}/client.crt" -days 365 \
-    >/dev/null 2>&1
-  chmod 600 "${SECRETS_DIR}/client.key"
-  rm -f "${SECRETS_DIR}/client.csr" "${SECRETS_DIR}/ca.srl"
+    anomaly = (
+        isinstance(conn, (int, float)) and conn > 50 and conn > (busy * 3 + 10)
+    )
+    if not anomaly:
+        return
+
+    prompt = (
+        "You are an SRE assistant. NGINX metrics:\n"
+        + json.dumps(metrics, indent=2)
+        + "\nOne sentence: likely cause and safest action?"
+    )
+    diagnosis = ask_ollama(prompt)
+
+    event = {
+        "time": now(),
+        "metrics": metrics,
+        "diagnosis": diagnosis.strip(),
+        "action": "log_and_alert",
+        "result": execute_action("log_and_alert", metrics),
+    }
+    events.append(event)
+    print(json.dumps(event))
+
+
+def background_loop():
+    while True:
+        try:
+            cycle()
+        except Exception as e:
+            print(f"cycle error: {e}")
+        time.sleep(CYCLE)
+
+
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok", "model": MODEL, "time": now()})
+
+
+@app.route("/events")
+def list_events():
+    return jsonify({"events": events[-20:]})
+
+
+@app.route("/test_llm")
+def test_llm():
+    """Smoke test — proves Ollama is reachable and the model is loaded."""
+    return jsonify({"reply": ask_ollama("Say hello in five words.")})
+
+
+if __name__ == "__main__":
+    threading.Thread(target=background_loop, daemon=True).start()
+    app.run(host="0.0.0.0", port=5002, debug=False)
