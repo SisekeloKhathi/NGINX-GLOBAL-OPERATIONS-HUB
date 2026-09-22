@@ -6,4 +6,11 @@ services:
     ports:
       - "8118:80"
     volumes:
+      # Existing NGINX configuration
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+      # Existing TLS certificates
+      - ../../secrets:/etc/nginx/secrets:ro
+
+      # Public website served by NGINX
+      - ../../web/public:/usr/share/nginx/html:ro

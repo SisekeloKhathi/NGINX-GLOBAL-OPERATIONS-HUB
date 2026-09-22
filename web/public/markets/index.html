@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Operations Hub - Markets</title>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .page {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ticker {
+            height: 12%;
+            flex: 0 0 12%;
+        }
+
+        .chart {
+            flex: 1;
+            min-height: 0;
+        }
+
+        .tradingview-widget-container,
+        .tradingview-widget-container__widget {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <div class="ticker">
+        <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+
+            <script
+                type="text/javascript"
+                src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js"
+                async>
+                {
+                    "symbols": [
+                        {
+                            "proName": "JSE:SBK",
+                            "title": "Standard Bank"
+                        },
+                        {
+                            "proName": "JSE:FSR",
+                            "title": "FirstRand"
+                        },
+                        {
+                            "proName": "JSE:NPN",
+                            "title": "Naspers"
+                        },
+                        {
+                            "proName": "JSE:SOL",
+                            "title": "Sasol"
+                        },
+                        {
+                            "proName": "JSE:MTN",
+                            "title": "MTN"
+                        },
+                        {
+                            "proName": "NASDAQ:IXIC",
+                            "title": "NASDAQ"
+                        },
+                        {
+                            "proName": "SP:SPX",
+                            "title": "S&P 500"
+                        },
+                        {
+                            "proName": "TVC:USOIL",
+                            "title": "Crude Oil"
+                        },
+                        {
+                            "proName": "FX:USDZAR",
+                            "title": "USD/ZAR"
+                        }
+                    ],
+                    "showSymbolLogo": true,
+                    "colorTheme": "dark",
+                    "isTransparent": false,
+                    "displayMode": "adaptive",
+                    "locale": "en"
+                }
+            </script>
+        </div>
+    </div>
+
+    <div class="chart">
+        <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+
+            <script
+                type="text/javascript"
+                src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
+                async>
+                {
+                    "autosize": true,
+                    "symbol": "JSE:SBK",
+                    "interval": "60",
+                    "timezone": "Africa/Johannesburg",
+                    "theme": "dark",
+                    "style": "1",
+                    "locale": "en",
+                    "allow_symbol_change": true,
+                    "calendar": false,
+                    "support_host": "https://www.tradingview.com"
+                }
+            </script>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

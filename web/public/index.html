@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Global Operations Hub</title>
+</head>
+<body>
+
+<h1>🌍 Global Operations Hub</h1>
+
+<h2>📈 Markets</h2>
+<pre id="fx">Loading...</pre>
+
+<h2>🌦️ Weather</h2>
+<pre id="weather">Loading...</pre>
+
+<h2>✈️ Flights</h2>
+<pre id="flights">Loading...</pre>
+
+<script>
+async function load(name, endpoint) {
+    try {
+        const response = await fetch(endpoint);
+
+        if (!response.ok) {
+            if (response.status === 429) {
+                const retryAfter = response.headers.get(
+                    "X-Rate-Limit-Retry-After-Seconds"
+                );
+
+                document.getElementById(name).textContent =
+                    "OpenSky temporarily rate-limited.\n" +
+                    "Retry after: " + retryAfter + " seconds";
+                return;
+            }
+
+            throw new Error("HTTP " + response.status);
+        }
+
+        const data = await response.json();
+
+        document.getElementById(name).textContent =
+            JSON.stringify(data, null, 2);
+
+    } catch (error) {
+        document.getElementById(name).textContent =
+            "Error: " + error.message;
+    }
+}
+
+load("fx", "/api/fx/v6/latest/USD");
+load("weather", "/api/weather/");
+load("flights", "/api/flights/");
+</script>
+
+</body>
+</html>
