@@ -152,8 +152,8 @@ resource "docker_container" "nginx_gateway" {
     read_only = true
   }
   mounts {
-    target    = "/var/www/screen"
-    source    = abspath("../../../17-DASHBOARD/06-operations-center/screens")
+    target    = "/usr/share/nginx/html"
+    source    = abspath("../../../web/public")
     type      = "bind"
     read_only = true
   }
